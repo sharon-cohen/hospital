@@ -1,0 +1,400 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+typedef enum  {
+    GENERAL=1,
+    PHARMACY=2,
+    SURGICAL=3,
+    COUNSELLING=4,
+    END,
+} namede;
+
+
+   namede get_enum_value(char * st) {//function to chage enum type.
+    
+    static char const * e_test_str[] = { "General",
+    "Pharmacy",
+    "Surgical",
+    "Counselling",
+    };
+    for (int i = 0; i < END; ++i)
+        {
+        if (strcmp(e_test_str[i], st)==0)
+            {
+             return (i+1);
+            }
+        }
+
+    return END;
+ }
+
+
+ typedef struct patient{//struct for patient dietells
+    char *id;
+    char *name; 
+    char *reason; 
+    namede department;
+     int priority;
+    struct patient *next;
+} patient;
+
+ typedef struct  {
+    char *name;
+    char *doc;
+    int visit;
+    patient* list;// point to struct patient
+} hospitalClass;
+
+ 
+ patient* loadata(char namefile[1000])// Receiving data for a linked list
+{
+FILE *fp=fopen(namefile,"r");
+ if (fp == NULL){
+			printf("Cannot open the file, press any key to exit the program");
+			exit(0);
+		}
+ char line[1000];
+patient *current; 
+patient *head;
+ 
+ const char siman[3]=",";
+ const char siman2[3]="\n";
+ head = current = NULL;
+ char* ch; 
+ char* ch1;
+
+ int i=0;  
+
+while(fgets(line, 1000, fp)!=NULL)//Reading lines from the file until the lines are finished
+{
+    
+    if ((line[0]>='a'&& line[0]<='z')|| (line[0]>='A' && line[0]<='Z')||(line[0]>='0' && line[0]<='9')) //Reads lines only if they begin with id
+   {
+        patient *node = (patient*)malloc(sizeof(patient));
+        while(i<5)
+        {
+          ch=strtok(line,siman);
+          while(ch!=NULL)
+          {
+             switch (i)
+             {
+                case 0:
+                {                
+                node->id=strdup(ch);
+                
+                i++;
+                
+                }
+                break;
+                case 1:
+                {
+                node->name=strdup(ch);
+            
+                i++;
+                }
+                break;
+                case 2:
+                {
+                    node->reason=strdup(ch);
+                    i++;
+                   
+                }
+                 break;
+                case 3:
+                {
+                    
+                    node->department =get_enum_value(ch) ;
+                    
+                    i++;
+                
+                }
+                   break;
+                 
+                 case 4 :
+                 {
+                    
+					ch1=strtok(ch,"\n");
+                    int val=atoi (ch1);
+                    node->priority = val;
+                    i++;
+                     
+                 } 
+          break;
+          }
+           ch = strtok(NULL,",");//Initializing row
+        }
+        
+           
+            node->next =NULL;
+             if(head == NULL)
+           { 
+            current = head = node;
+           
+           }  
+             else 
+             {
+               current = current->next = node;
+             }
+           
+     }
+    i=0;       
+ }
+}
+fclose(fp);
+return head;
+}
+
+ 
+ patient *add(patient *head, patient data) 
+   
+    { 
+    patient* new;
+    new = (patient*)malloc(sizeof(patient));
+    new->id = data.id;
+	new->name= data.name;
+	new->reason = data.reason;
+	new->department = data.department;
+    new->priority = data.priority;  
+    new->next=head;
+    return new; 
+    
+    }
+
+
+int cases(patient*head_all,char namefile2[1000])
+{
+
+
+FILE *pt;
+ pt=fopen(namefile2,"w");
+if (pt == NULL){
+			printf("Cannot open the file, press any key to exit the program");
+			exit(0);
+		}
+patient *cur_all = NULL;
+ cur_all=head_all;
+ patient *Gen_list = NULL;
+patient *Phar_list = NULL;  //List of each department
+patient *surgery_list = NULL;
+patient *Coun_list = NULL;
+
+patient *Gen_Head = NULL;
+patient *Phar_Head = NULL;
+patient *Sur_Head = NULL;
+patient *Coun_Head = NULL;
+int j=1;
+while(j<8)   //A loop arranges the list it creates according to the priority       
+ {
+ 
+ cur_all=head_all;
+ while ( cur_all != NULL )
+ {
+   switch(cur_all->department)
+   {
+    case 1:
+    {
+      
+       if(cur_all->priority==j)
+            {
+           
+			Gen_list = add (Gen_list, *cur_all);
+            }
+      
+    break;
+
+    }
+
+     case 2:
+     {
+           if(cur_all->priority==j)
+           {
+           
+			Phar_list = add (Phar_list,*cur_all);
+            
+           
+           }
+     break;
+     }
+
+     case 3:
+     {
+    if(cur_all->priority==j)
+     {
+     
+     surgery_list= add (surgery_list,*cur_all );
+	
+     }
+	 break;
+     }
+       case 4:
+		{
+			if(cur_all->priority==j)
+            {
+           
+			Coun_list = add(Coun_list,*cur_all );
+	
+			
+            }
+         break;
+        }
+   }
+ cur_all = cur_all->next;
+ } 
+ j++;
+ }
+
+   int g=1;
+    int p=1;
+    int s=1;
+    int c=1;
+    int numg=1;
+    int nump=1;
+    int nums=1;
+    int numc=1;
+    hospitalClass *general_de=NULL;
+    general_de = (hospitalClass*)malloc(sizeof(hospitalClass));
+    hospitalClass *pharm_de=NULL;
+    pharm_de = (hospitalClass*)malloc(sizeof(hospitalClass));
+    hospitalClass *sur_de=NULL;
+    sur_de = (hospitalClass*)malloc(sizeof(hospitalClass));   //Lists by departments and their data
+    hospitalClass *cu_de=NULL;
+    cu_de = (hospitalClass*)malloc(sizeof(hospitalClass));
+    general_de->name = strdup("General");
+	general_de->doc = strdup("Dr. sharon");
+	general_de->visit = g;
+    general_de->list = Gen_list;
+
+	pharm_de->name = strdup("Pharmacy");
+	pharm_de->doc = strdup("Dr. dana");
+	pharm_de->visit = p;
+	pharm_de->list = Phar_list;//Points to the list of patients in the same department
+
+	sur_de->name = strdup("Surgical");
+	sur_de->doc = strdup("Dr. omer");
+	sur_de->visit = s;
+	sur_de->list = surgery_list;
+
+	cu_de->name = strdup("Counselling");
+	cu_de->doc = strdup("Dr. yuval");
+	cu_de->visit = c;
+	cu_de->list = Coun_list;
+    cur_all=head_all;
+    while(cur_all!=NULL)
+    {
+    
+     if(general_de->list->next!=NULL)//Print loop
+      {
+          
+           fprintf(pt,"%s %s %d %s %s %s %d\n",general_de->doc ,general_de->name,general_de->visit,general_de->list->id,general_de->list->name,general_de->list->reason,general_de->list->priority);
+           numg++;
+           general_de->visit=g=g+1;
+           general_de->list =general_de->list->next;
+      }
+        if(pharm_de->list->next!=NULL)
+        {
+           fprintf(pt,"%s %s %d %s %s %s %d\n",pharm_de->doc ,pharm_de->name,pharm_de->visit,pharm_de->list->id,pharm_de->list->name,pharm_de->list->reason,pharm_de->list->priority); 
+          nump++;
+          pharm_de->visit=p=p+1;
+          pharm_de->list =pharm_de->list->next;
+        }
+     if(sur_de->list->next!=NULL)
+     {
+        fprintf(pt,"%s %s %d %s %s %s %d\n",sur_de->doc ,sur_de->name,sur_de->visit,sur_de->list->id,sur_de->list->name,sur_de->list->reason,sur_de->list->priority); 
+        nums++;
+        sur_de->visit=s=s+1;
+        sur_de->list =sur_de->list->next;
+     }
+        
+     if(cu_de->list->next!=NULL)
+     {
+     fprintf(pt,"%s %s %d %s %s %s %d\n",cu_de->doc ,cu_de->name,cu_de->visit,cu_de->list->id,cu_de->list->name,cu_de->list->reason,cu_de->list->priority);
+     numc++;
+     cu_de->visit=c=c+1;
+     cu_de->list =cu_de->list->next;
+     }
+   cur_all=cur_all->next;
+
+}
+printf("You'll want to handle another patient file if yes click 1 else click 2");
+int answer=0;
+scanf("%d",&answer);
+if(answer==1)
+{
+    return 0;
+
+}
+else
+{
+
+fprintf(pt,"\n \n \n \n ");
+fprintf(pt,"the details of the depratment\n ");
+fprintf(pt,"%s %s the number of paitent-%d\n",general_de->doc,general_de->name,(general_de->visit-1));
+fprintf(pt,"%s %s the number of paitient-%d\n",pharm_de->doc,pharm_de->name,(pharm_de->visit-1));
+fprintf(pt,"%s %s the number of paitient-%d\n",sur_de->doc ,sur_de->name,(sur_de->visit-1));
+fprintf(pt,"%s %s the number of paitient-%d\n",cu_de->doc ,cu_de->name,(cu_de->visit-1));
+return 1;
+
+}
+fclose(pt);
+
+
+
+
+}
+
+
+
+
+
+
+
+int main(int argc,char*argv[])
+{
+program:;
+if(argv[1]==NULL)
+{
+    printf("you dont enter a name file");
+}
+char namefile2[1000];
+printf("Enter .txt file name\n");
+scanf("%123s",namefile2);
+strcat(namefile2,".txt");
+FILE *ptr;
+ ptr=fopen(argv[1],"r");
+ if (ptr == NULL){
+			printf("Cannot open the file, press any key to exit the program");
+			exit(0);
+		}
+ patient *head_all;
+ head_all= loadata(argv[1]);
+ int result=cases(head_all,namefile2);
+if (result==0)
+{
+
+ goto program;
+
+}
+else
+{
+
+    printf("have a nice day");
+}
+
+
+fclose(ptr);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+   
